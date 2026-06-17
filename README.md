@@ -87,11 +87,12 @@ $response = Vspay::payments()->create([
     ],
 ]);
 
-$response->accepted();            // true
-$response->providerRequestId();   // gateway external id
-$response->paymentUrl();          // hosted checkout URL (if any)
-$response->provider();            // raw gateway payload
-$response->toArray();             // full decoded body
+$response->accepted();             // true
+$response->providerRequestId();    // gateway external id
+$response->chargeOperationUuid();  // use this to refund the charge later
+$response->paymentUrl();           // hosted checkout URL (if any)
+$response->provider();             // raw gateway payload
+$response->toArray();              // full decoded body
 ```
 
 ### Card charge
@@ -119,14 +120,15 @@ Vspay::payments()->create([
 
 ### Refunds
 
-> The charge response does not currently expose the internal
-> `charge_operation_uuid`. Obtain it from the merchant cabinet (or a future API
-> field) before issuing a refund.
+A refund references the parent charge by `charge_operation_uuid`, which is
+returned on every accepted charge response via `$response->chargeOperationUuid()`.
 
 ```php
+$charge = Vspay::payments()->create([/* ... */]);
+
 Vspay::refunds()->create([
     'refund_reference' => 'rf-1',
-    'charge_operation_uuid' => 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11',
+    'charge_operation_uuid' => $charge->chargeOperationUuid(),
     'amount' => 10000,
     'payer' => ['id' => 'customer_42', 'ip' => '198.51.100.47'],
 ]);
@@ -241,6 +243,7 @@ The package version tracks the merchant API surface it covers:
 
 | Package version | API coverage |
 | --- | --- |
+| `1.1.x` | adds `charge_operation_uuid` on charge responses (refund without out-of-band lookup) |
 | `1.0.x` | payments, refunds, authorize/increment/reversal, capture, recurring(+cancel), payouts, convert/rate, status, checkout-url, webhook verification |
 
 See [CHANGELOG.md](CHANGELOG.md) for details.

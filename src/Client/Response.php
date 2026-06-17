@@ -48,6 +48,17 @@ final class Response implements ArrayAccess
     }
 
     /**
+     * Internal charge operation uuid. Returned on accepted charge responses
+     * and used as `charge_operation_uuid` when issuing a refund.
+     */
+    public function chargeOperationUuid(): ?string
+    {
+        $value = $this->data['charge_operation_uuid'] ?? null;
+
+        return $value === null ? null : (string) $value;
+    }
+
+    /**
      * Hosted checkout payment URL (orchestrated charge with hosted driver).
      */
     public function paymentUrl(): ?string

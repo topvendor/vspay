@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.1.0] - 2026-06-17
+
+### Added
+- `Response::chargeOperationUuid()` exposing the `charge_operation_uuid` now
+  returned by the API on accepted charge responses, removing the need to look
+  up the parent operation out of band before issuing a refund.
+
 ## [1.0.0] - 2026-06-17
 
 ### Added
@@ -21,5 +28,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `Vspay` facade and auto-discovered service provider.
 - Publishable `config/vspay.php` driven entirely by environment variables.
 
-[Unreleased]: https://github.com/topvendor/vspay/compare/v1.0.0...HEAD
+[Unreleased]: https://github.com/topvendor/vspay/compare/v1.1.0...HEAD
+[1.1.0]: https://github.com/topvendor/vspay/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/topvendor/vspay/releases/tag/v1.0.0

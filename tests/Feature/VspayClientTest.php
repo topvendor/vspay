@@ -33,6 +33,7 @@ it('sends a bearer token and json to the correct url', function () {
 
     expect($response->accepted())->toBeTrue()
         ->and($response->providerRequestId())->toBe('req-1')
+        ->and($response->chargeOperationUuid())->toBeNull()
         ->and($response->provider())->toBe(['sync_status' => 'Success']);
 
     Http::assertSent(function ($request) {
@@ -40,6 +41,21 @@ it('sends a bearer token and json to the correct url', function () {
             && $request->hasHeader('Authorization', 'Bearer test-terminal-secret')
             && $request['merchant_payment_id'] === 'order-1';
     });
+});
+
+it('exposes charge_operation_uuid for refunds', function () {
+    Http::fake([
+        'api.example.test/api/v1/payments' => Http::response([
+            'accepted' => true,
+            'provider_request_id' => 'req-1',
+            'charge_operation_uuid' => 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11',
+            'provider' => ['sync_status' => 'Success'],
+        ], 200),
+    ]);
+
+    $charge = client()->payments()->create(['merchant_payment_id' => 'order-1']);
+
+    expect($charge->chargeOperationUuid())->toBe('a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11');
 });
 
 it('maps 401 to UnauthorizedException', function () {
