@@ -83,7 +83,7 @@ $response = Vspay::payments()->create([
         'last_name' => 'Ivanov',
     ],
     'instrument' => [
-        'method_type' => 'sbp', // card | sbp | crypto
+        'method_type' => 'sbp', // card | latam_card | sbp | crypto | uz_p2p
     ],
 ]);
 
@@ -116,6 +116,66 @@ Vspay::payments()->create([
         ],
     ],
 ]);
+```
+
+### Hosted-checkout charges
+
+Some method types are settled on the provider's hosted form: the API accepts the
+charge with `status: "awaiting"` and returns a `payment_url`. Redirect the payer
+there — never collect card data yourself — and wait for the signed webhook to
+deliver the final state. Read the URL with `$response->paymentUrl()`.
+
+#### LatAm card (`latam_card`)
+
+Card PayIn across Latin America via the provider's hosted checkout. The payer's
+national document and the merchant site URL are required; redirect URLs must be
+on the terminal allowlist.
+
+```php
+$response = Vspay::payments()->create([
+    'merchant_payment_id' => 'cl-order-7001',
+    'success_redirect_url' => 'https://merchant.com/pay/ok',  // url_OK, whitelisted
+    'error_redirect_url' => 'https://merchant.com/pay/fail',  // url_ERROR, whitelisted
+    'currency' => 'CLP',     // CLP and PYG carry the amount in major units
+    'amount' => 129000,
+    'country' => 'CL',       // ISO 3166-1 alpha-2
+    'document_id' => '12345678K', // payer national id (no dots/dashes)
+    'merchant_url' => 'https://merchant.com',
+    'expiration_minutes' => 240,  // optional, 1..1440 (default 240)
+    'payer' => [
+        'id' => 'customer_42',
+        'ip' => '198.51.100.47',
+        'email' => 'john.doe@gmail.com',
+        'first_name' => 'John',
+        'last_name' => 'Doe',     // or pass `name` for the full name
+        'phone' => '+56987654321', // optional, E.164 (recommended for EC, BO, CO, GT)
+    ],
+    'instrument' => ['method_type' => 'latam_card'], // no `instrument.card`
+]);
+
+$response->statusValue(); // "awaiting"
+$response->paymentUrl();  // hosted checkout URL — redirect the payer here
+```
+
+#### UZ P2P (`uz_p2p`)
+
+P2P PayIn for Uzbekistan. The payer picks the rail (UZCARD, HUMO, Payme, Click, …)
+on the hosted form unless you pin one via `instrument.payment_method`.
+
+```php
+$response = Vspay::payments()->create([
+    'merchant_payment_id' => 'uz-order-5001',
+    'success_redirect_url' => 'https://merchant.com/pay/ok',
+    'currency' => 'UZS',
+    'amount' => 10000000,
+    'payer' => ['id' => 'customer_42', 'ip' => '198.51.100.47'],
+    'instrument' => [
+        'method_type' => 'uz_p2p',         // no `instrument.card`
+        'payment_method' => 'UZ_HUMO',     // optional rail; omit to let the payer choose
+    ],
+]);
+
+$response->paymentUrl(); // hosted form URL — redirect the payer here
 ```
 
 ### Refunds
@@ -243,6 +303,7 @@ The package version tracks the merchant API surface it covers:
 
 | Package version | API coverage |
 | --- | --- |
+| `1.2.x` | adds hosted-checkout charge method types `latam_card` (LatAm) and `uz_p2p` (Uzbekistan) |
 | `1.1.x` | adds `charge_operation_uuid` on charge responses (refund without out-of-band lookup) |
 | `1.0.x` | payments, refunds, authorize/increment/reversal, capture, recurring(+cancel), payouts, convert/rate, status, checkout-url, webhook verification |
 

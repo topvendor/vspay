@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.2.0] - 2026-06-19
+
+### Added
+- Hosted-checkout charge method types on `Payments::create`:
+  - `latam_card` — LatAm card PayIn (Zippy). New request fields `error_redirect_url`,
+    `country`, `document_id`, `merchant_url`, `expiration_minutes`, `payer.name` and
+    `payer.phone`; the charge is accepted with `status: "awaiting"` and a `payment_url`.
+  - `uz_p2p` — Uzbekistan P2P PayIn (ehotpay), with optional `instrument.payment_method`
+    to pin the payment rail.
+- README examples for both hosted-checkout method types.
+
+These are backward-compatible additions (the new fields are required only for the
+respective method type); the response shape is unchanged and already exposed via
+`Response::paymentUrl()` / `Response::statusValue()`.
+
 ## [1.1.0] - 2026-06-17
 
 ### Added
@@ -28,6 +43,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `Vspay` facade and auto-discovered service provider.
 - Publishable `config/vspay.php` driven entirely by environment variables.
 
-[Unreleased]: https://github.com/topvendor/vspay/compare/v1.1.0...HEAD
+[Unreleased]: https://github.com/topvendor/vspay/compare/v1.2.0...HEAD
+[1.2.0]: https://github.com/topvendor/vspay/compare/v1.1.0...v1.2.0
 [1.1.0]: https://github.com/topvendor/vspay/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/topvendor/vspay/releases/tag/v1.0.0
