@@ -29,6 +29,49 @@ Publish the config file (optional — the package works with env vars alone):
 php artisan vendor:publish --tag=vspay-config
 ```
 
+### Installing without Packagist (VCS repository)
+
+If the package is not published on Packagist (or you prefer to pull it straight
+from GitHub), point Composer at the repository via a `repositories` entry in your
+project's `composer.json`, then require it as usual:
+
+```json
+{
+    "repositories": [
+        {
+            "type": "vcs",
+            "url": "https://github.com/topvendor/vspay"
+        }
+    ],
+    "require": {
+        "topvendor/vspay": "^1.2"
+    }
+}
+```
+
+Then install / update:
+
+```bash
+composer update topvendor/vspay
+```
+
+Composer reads the repository's Git tags, so version constraints like `^1.2`
+resolve to the latest matching release (e.g. `v1.2.1`). Pull future updates the
+same way you would for any package — `composer update topvendor/vspay` — as soon
+as a new tag is pushed to GitHub.
+
+Notes:
+
+- The `repositories` block must be added **before** running `composer require`;
+  without it Composer cannot locate `topvendor/vspay`.
+- For a **private** mirror of this repository, Composer will authenticate over
+  SSH (`"url": "git@github.com:topvendor/vspay.git"`) or prompt for a GitHub
+  token. Unauthenticated GitHub API calls are rate-limited, so configure a token
+  via `composer config --global github-oauth.github.com <token>` if you hit limits.
+- To track a branch instead of a release tag, require `dev-main` (requires
+  `"minimum-stability": "dev"` in your project); prefer tagged versions for
+  production.
+
 ## Configuration
 
 Set the following in your `.env`:
