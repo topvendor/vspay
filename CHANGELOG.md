@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.2.1] - 2026-06-19
+
+### Changed
+- Documentation only: per-method request formats for methods other than SBP and
+  cards (e.g. regional hosted-checkout PayIns) are no longer enumerated here.
+  Their `instrument.method_type` values and required fields are documented in the
+  merchant cabinet, per terminal. The SDK still passes any payload through
+  unchanged, so no upgrade is needed to use a method your terminal supports.
+- The Uzbekistan P2P charge method type was renamed `uz_p2p` → `uz` in the API.
+
 ## [1.2.0] - 2026-06-19
 
 ### Added
@@ -43,7 +53,8 @@ respective method type); the response shape is unchanged and already exposed via
 - `Vspay` facade and auto-discovered service provider.
 - Publishable `config/vspay.php` driven entirely by environment variables.
 
-[Unreleased]: https://github.com/topvendor/vspay/compare/v1.2.0...HEAD
+[Unreleased]: https://github.com/topvendor/vspay/compare/v1.2.1...HEAD
+[1.2.1]: https://github.com/topvendor/vspay/compare/v1.2.0...v1.2.1
 [1.2.0]: https://github.com/topvendor/vspay/compare/v1.1.0...v1.2.0
 [1.1.0]: https://github.com/topvendor/vspay/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/topvendor/vspay/releases/tag/v1.0.0

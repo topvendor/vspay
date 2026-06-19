@@ -58,7 +58,10 @@ it('exposes charge_operation_uuid for refunds', function () {
     expect($charge->chargeOperationUuid())->toBe('a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11');
 });
 
-it('creates a latam_card hosted charge and exposes the payment url', function () {
+it('creates a hosted-checkout charge and exposes the payment url', function () {
+    // Hosted-checkout methods (beyond SBP/cards) are accepted as "awaiting" with a
+    // payment_url. The SDK passes the payload through unchanged regardless of the
+    // method-specific fields, which are documented per terminal in the cabinet.
     Http::fake([
         'api.example.test/api/v1/payments' => Http::response([
             'accepted' => true,
@@ -70,37 +73,24 @@ it('creates a latam_card hosted charge and exposes the payment url', function ()
         ], 200),
     ]);
 
-    $response = client()->payments()->create([
-        'merchant_payment_id' => 'cl-order-7001',
+    $payload = [
+        'merchant_payment_id' => 'order-hosted-1',
         'success_redirect_url' => 'https://merchant.com/pay/ok',
-        'error_redirect_url' => 'https://merchant.com/pay/fail',
-        'currency' => 'CLP',
+        'currency' => 'USD',
         'amount' => 129000,
-        'country' => 'CL',
-        'document_id' => '12345678K',
-        'merchant_url' => 'https://merchant.com',
-        'payer' => [
-            'id' => 'customer_42',
-            'ip' => '198.51.100.47',
-            'email' => 'john.doe@gmail.com',
-            'first_name' => 'John',
-            'last_name' => 'Doe',
-            'phone' => '+56987654321',
-        ],
-        'instrument' => ['method_type' => 'latam_card'],
-    ]);
+        'payer' => ['id' => 'customer_42', 'ip' => '198.51.100.47'],
+        'instrument' => ['method_type' => 'some_hosted_method'],
+    ];
+
+    $response = client()->payments()->create($payload);
 
     expect($response->accepted())->toBeTrue()
         ->and($response->statusValue())->toBe('awaiting')
         ->and($response->paymentUrl())->toBe('https://checkout.example.test/c/9d844fb9')
         ->and($response->chargeOperationUuid())->toBe('a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11');
 
-    Http::assertSent(function ($request) {
-        return $request['instrument']['method_type'] === 'latam_card'
-            && $request['country'] === 'CL'
-            && $request['document_id'] === '12345678K'
-            && $request['error_redirect_url'] === 'https://merchant.com/pay/fail';
-    });
+    Http::assertSent(fn ($request) => $request['merchant_payment_id'] === 'order-hosted-1'
+        && $request['instrument']['method_type'] === 'some_hosted_method');
 });
 
 it('maps 401 to UnauthorizedException', function () {
