@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.0.0] - 2026-06-23
+
+### Changed
+- **BREAKING (API contract).** The "method block" entitlement concept was renamed
+  to **scope** across the merchant API. The error codes returned in
+  `error.code` were renamed accordingly:
+  - `METHOD_BLOCK_NOT_ENABLED` → `SCOPE_NOT_ENABLED` (HTTP 403)
+  - `METHOD_BLOCK_NOT_ROUTED` → `SCOPE_NOT_ROUTED` (HTTP 422)
+
+  Exception mapping is unchanged (403 → `GatewayException`, 422 →
+  `ValidationException`). Only code consumers that match on the literal
+  `error.code` string need to update from `METHOD_BLOCK_*` to `SCOPE_*`.
+
 ## [1.2.1] - 2026-06-19
 
 ### Changed
