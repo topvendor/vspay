@@ -14,6 +14,7 @@ use Topvendor\Vspay\Resources\Checkout;
 use Topvendor\Vspay\Resources\Gateway;
 use Topvendor\Vspay\Resources\Payments;
 use Topvendor\Vspay\Resources\Refunds;
+use Topvendor\Vspay\Resources\Uz;
 use Topvendor\Vspay\Webhooks\WebhookVerifier;
 
 /**
@@ -48,6 +49,11 @@ final class VspayClient
     public function checkout(): Checkout
     {
         return new Checkout($this);
+    }
+
+    public function uz(): Uz
+    {
+        return new Uz($this);
     }
 
     public function webhooks(): WebhookVerifier
@@ -92,6 +98,68 @@ final class VspayClient
         return $this->handle($http);
     }
 
+    /**
+     * POST to a provider-shaped endpoint (ehotpay proxy) where success is HTTP 2xx
+     * without the standard `{accepted: true}` envelope.
+     *
+     * @param  array<string, mixed>  $body
+     *
+     * @throws VspayException
+     */
+    public function postProvider(string $path, array $body): Response
+    {
+        try {
+            $http = $this->http
+                ->acceptJson()
+                ->asJson()
+                ->withToken($this->config->secret)
+                ->timeout($this->config->timeout)
+                ->retry(
+                    times: max(1, $this->config->retries + 1),
+                    sleepMilliseconds: $this->config->retryDelayMs,
+                    when: fn ($exception, $request) => $exception instanceof ConnectionException,
+                    throw: false,
+                )
+                ->post($this->config->url($path), $body);
+        } catch (ConnectionException $e) {
+            throw new VspayException(
+                message: 'Failed to connect to VSPay API: '.$e->getMessage(),
+                previous: $e,
+            );
+        }
+
+        return $this->handleProvider($http);
+    }
+
+    /**
+     * GET from a provider-shaped endpoint (ehotpay proxy).
+     *
+     * @throws VspayException
+     */
+    public function getProvider(string $path): Response
+    {
+        try {
+            $http = $this->http
+                ->acceptJson()
+                ->withToken($this->config->secret)
+                ->timeout($this->config->timeout)
+                ->retry(
+                    times: max(1, $this->config->retries + 1),
+                    sleepMilliseconds: $this->config->retryDelayMs,
+                    when: fn ($exception, $request) => $exception instanceof ConnectionException,
+                    throw: false,
+                )
+                ->get($this->config->url($path));
+        } catch (ConnectionException $e) {
+            throw new VspayException(
+                message: 'Failed to connect to VSPay API: '.$e->getMessage(),
+                previous: $e,
+            );
+        }
+
+        return $this->handleProvider($http);
+    }
+
     private function handle(HttpResponse $http): Response
     {
         $data = $http->json();
@@ -104,6 +172,28 @@ final class VspayClient
         $response = new Response($data, $http->status());
 
         if ($http->successful() && $response->accepted()) {
+            return $response;
+        }
+
+        $this->throwForResponse($response);
+    }
+
+    private function handleProvider(HttpResponse $http): Response
+    {
+        $data = $http->json();
+
+        if (! is_array($data)) {
+            $data = [];
+        }
+
+        /** @var array<string, mixed> $data */
+        $response = new Response($data, $http->status());
+
+        if (($data['accepted'] ?? null) === false) {
+            $this->throwForResponse($response);
+        }
+
+        if ($http->successful()) {
             return $response;
         }
 

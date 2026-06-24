@@ -88,6 +88,50 @@ final class Response implements ArrayAccess
         return $value === null ? null : (string) $value;
     }
 
+    /**
+     * Normalized status label from ehotpay proxy responses.
+     */
+    public function statusLabel(): ?string
+    {
+        $value = $this->data['status_label'] ?? null;
+
+        return $value === null ? null : (string) $value;
+    }
+
+    /**
+     * Numeric ehotpay order status (0 = awaiting, 1 = success, ...).
+     */
+    public function providerStatus(): ?int
+    {
+        $value = $this->data['status'] ?? null;
+
+        return is_numeric($value) ? (int) $value : null;
+    }
+
+    public function merchantOrderId(): ?string
+    {
+        $value = $this->data['merchant_order_id'] ?? null;
+
+        return $value === null ? null : (string) $value;
+    }
+
+    public function uid(): ?string
+    {
+        $value = $this->data['uid'] ?? null;
+
+        return $value === null ? null : (string) $value;
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    public function paymentsDetails(): array
+    {
+        $details = $this->data['payments_details'] ?? [];
+
+        return is_array($details) ? $details : [];
+    }
+
     public function get(string $key, mixed $default = null): mixed
     {
         return $this->data[$key] ?? $default;

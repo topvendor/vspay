@@ -10,11 +10,6 @@ use Topvendor\Vspay\Exceptions\ValidationException;
 use Topvendor\Vspay\Exceptions\VspayException;
 use Topvendor\Vspay\Facades\Vspay;
 
-function client(): VspayClient
-{
-    return app(VspayClient::class);
-}
-
 it('sends a bearer token and json to the correct url', function () {
     Http::fake([
         'api.example.test/api/v1/payments' => Http::response([

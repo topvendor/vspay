@@ -224,6 +224,31 @@ Vspay::gateway()->status(['order_id' => 'ord-1']);
 Vspay::gateway()->status(['request_uuid' => '2222...']);
 ```
 
+### UZ merchant form (ehotpay proxy)
+
+When you host the payment UI yourself, use the ehotpay-shaped proxy endpoints
+instead of `Payments::create` with `instrument.method_type: uz` (which returns
+our hosted `payment_url`).
+
+```php
+$order = Vspay::uz()->createPayInOrder([
+    'merchant_order_id' => 'uz-order-5001',
+    'amount' => '100000.00',
+    'currency' => 'UZS',
+    'pay_in_details' => ['payment_method' => 'UZ_UZCARD'], // or UZ_HUMO
+    'webhook_url' => 'https://merchant.com/hooks/payment',
+    'payer' => ['id' => 'customer_42', 'ip' => '198.51.100.47'],
+]);
+
+$order->paymentsDetails();      // trader requisites from ehotpay
+$order->chargeOperationUuid();  // for refunds
+
+$status = Vspay::uz()->getPayInOrderByMerchantId('uz-order-5001');
+$status->statusLabel();         // e.g. "succeeded"
+```
+
+Errors such as `FLOW_CONFLICT` (409) are thrown as `GatewayException`.
+
 ### Hosted checkout URL
 
 ```php
@@ -304,6 +329,8 @@ The package version tracks the merchant API surface it covers:
 
 | Package version | API coverage |
 | --- | --- |
+| `2.1.x` | UZ merchant-hosted checkout via `Vspay::uz()` (ehotpay proxy endpoints) |
+| `2.0.x` | scope rename (`SCOPE_NOT_ENABLED` / `SCOPE_NOT_ROUTED`) |
 | `1.2.x` | hosted-checkout charges accepted as `status: "awaiting"` + `payment_url`; per-method request formats documented in the merchant cabinet |
 | `1.1.x` | adds `charge_operation_uuid` on charge responses (refund without out-of-band lookup) |
 | `1.0.x` | payments, refunds, authorize/increment/reversal, capture, recurring(+cancel), payouts, convert/rate, status, checkout-url, webhook verification |

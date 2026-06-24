@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.1.0] - 2026-06-23
+
+### Added
+- `VspayClient::uz()` resource for merchant-hosted UZ checkout (ehotpay proxy):
+  - `Uz::createPayInOrder()` → `POST /api/v1/uz/create-pay-in-order`
+  - `Uz::getPayInOrderByMerchantId()` → `GET /api/v1/uz/get-pay-in-order-by-merchant-id/{id}`
+- `VspayClient::postProvider()` / `getProvider()` for provider-shaped JSON responses
+  (HTTP 2xx without the standard `{accepted: true}` envelope).
+- `Response` helpers for ehotpay proxy payloads: `providerStatus()`, `statusLabel()`,
+  `paymentsDetails()`, `uid()`, `merchantOrderId()`.
+
 ## [2.0.0] - 2026-06-23
 
 ### Changed
