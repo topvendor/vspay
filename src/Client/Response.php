@@ -79,21 +79,51 @@ final class Response implements ArrayAccess
     }
 
     /**
-     * Operation status string when returned (e.g. "pending").
+     * Operation status in the processing platform (e.g. pending, in_progress, succeeded, failed).
      */
     public function statusValue(): ?string
     {
         $value = $this->data['status'] ?? null;
 
-        return $value === null ? null : (string) $value;
+        return is_string($value) && $value !== '' ? $value : null;
     }
 
     /**
-     * Normalized status label from ehotpay proxy responses.
+     * Human-readable operation status label (e.g. "Успех").
      */
     public function statusLabel(): ?string
     {
         $value = $this->data['status_label'] ?? null;
+
+        return $value === null ? null : (string) $value;
+    }
+
+    /**
+     * Merchant payment reference echoed from /status (same as charge create id).
+     */
+    public function merchantPaymentId(): ?string
+    {
+        $value = $this->data['merchant_payment_id'] ?? null;
+
+        return $value === null ? null : (string) $value;
+    }
+
+    /**
+     * Operation kind from /status: charge or refund.
+     */
+    public function operationType(): ?string
+    {
+        $value = $this->data['operation_type'] ?? null;
+
+        return $value === null ? null : (string) $value;
+    }
+
+    /**
+     * Subscription id echoed when status was queried by subscription_id only.
+     */
+    public function subscriptionId(): ?string
+    {
+        $value = $this->data['subscription_id'] ?? null;
 
         return $value === null ? null : (string) $value;
     }

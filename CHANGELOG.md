@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.0.0] - 2026-06-25
+
+### Changed
+- **BREAKING:** `Gateway::status()` now queries the processing platform, not the upstream gateway.
+  - Request: use `merchant_payment_id` (same id as `Payments::create` / `refund_reference` on refunds),
+    optionally `subscription_id` or `refund_id` (+ `merchant_payment_id` of the charge).
+  - Removed: `order_id` and `request_uuid` as status lookup keys.
+  - Response: normalized `status` / `status_label` / `merchant_payment_id` / `operation_type` /
+    `charge_operation_uuid`; no longer includes raw `provider` gateway payload.
+  - Not found → HTTP 404, `error.code` = `OPERATION_NOT_FOUND`.
+
+### Added
+- `Response::merchantPaymentId()`, `operationType()`, `subscriptionId()` for `/status` payloads.
+
 ## [2.2.0] - 2026-06-25
 
 ### Added

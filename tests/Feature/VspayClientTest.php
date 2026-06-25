@@ -2,7 +2,6 @@
 
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Facades\Http;
-use Topvendor\Vspay\Client\VspayClient;
 use Topvendor\Vspay\Exceptions\GatewayException;
 use Topvendor\Vspay\Exceptions\RateLimitException;
 use Topvendor\Vspay\Exceptions\UnauthorizedException;
@@ -126,8 +125,49 @@ it('maps 429 to RateLimitException', function () {
         '*' => Http::response(['accepted' => false, 'error' => ['code' => 'RATE_LIMIT']], 429),
     ]);
 
-    client()->gateway()->status(['order_id' => 'x']);
+    client()->gateway()->status(['merchant_payment_id' => 'x']);
 })->throws(RateLimitException::class);
+
+it('queries operation status by merchant_payment_id', function () {
+    Http::fake([
+        'api.example.test/api/v1/status' => Http::response([
+            'accepted' => true,
+            'http_status' => 200,
+            'status' => 'succeeded',
+            'status_label' => 'Успех',
+            'merchant_payment_id' => 'order-1001',
+            'operation_type' => 'charge',
+            'charge_operation_uuid' => 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11',
+        ], 200),
+    ]);
+
+    $response = client()->gateway()->status(['merchant_payment_id' => 'order-1001']);
+
+    expect($response->accepted())->toBeTrue()
+        ->and($response->statusValue())->toBe('succeeded')
+        ->and($response->statusLabel())->toBe('Успех')
+        ->and($response->merchantPaymentId())->toBe('order-1001')
+        ->and($response->operationType())->toBe('charge')
+        ->and($response->chargeOperationUuid())->toBe('a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11')
+        ->and($response->provider())->toBe([]);
+
+    Http::assertSent(fn ($request) => $request->url() === 'https://api.example.test/api/v1/status'
+        && $request['merchant_payment_id'] === 'order-1001');
+});
+
+it('maps operation not found to GatewayException', function () {
+    Http::fake([
+        'api.example.test/api/v1/status' => Http::response([
+            'accepted' => false,
+            'error' => [
+                'code' => 'OPERATION_NOT_FOUND',
+                'message' => 'No operation found for the given identifiers.',
+            ],
+        ], 404),
+    ]);
+
+    client()->gateway()->status(['merchant_payment_id' => 'missing']);
+})->throws(GatewayException::class);
 
 it('maps accepted:false to GatewayException', function () {
     Http::fake([

@@ -219,9 +219,17 @@ Vspay::gateway()->convertRate([
     'params' => ['currency_from' => 'USD', 'currency_to' => 'RUB'],
 ]);
 
-// Status — pass exactly one of order_id / request_uuid
-Vspay::gateway()->status(['order_id' => 'ord-1']);
-Vspay::gateway()->status(['request_uuid' => '2222...']);
+// Status — processing operation status (not raw gateway data)
+$response = Vspay::gateway()->status(['merchant_payment_id' => 'order-1001']);
+$response->statusValue();        // pending | in_progress | succeeded | failed
+$response->statusLabel();        // e.g. "Успех"
+$response->merchantPaymentId(); // echoes your id
+$response->operationType();      // charge | refund
+$response->chargeOperationUuid();
+
+// SBP subscriptions: subscription-only or paired with merchant_payment_id
+Vspay::gateway()->status(['subscription_id' => 'sub-1']);
+Vspay::gateway()->status(['subscription_id' => 'sub-1', 'merchant_payment_id' => 'order-1001']);
 ```
 
 ### UZ merchant form (ehotpay proxy)
@@ -383,6 +391,7 @@ The package version tracks the merchant API surface it covers:
 
 | Package version | API coverage |
 | --- | --- |
+| `3.0.x` | `/status` returns processing operation status (`merchant_payment_id` lookup; no `provider` passthrough) |
 | `2.2.x` | payer return redirects (`vspay_status` query contract, optional `error_redirect_url`) |
 | `2.1.x` | UZ merchant-hosted checkout via `Vspay::uz()` (ehotpay proxy endpoints) |
 | `2.0.x` | scope rename (`SCOPE_NOT_ENABLED` / `SCOPE_NOT_ROUTED`) |

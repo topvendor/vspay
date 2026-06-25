@@ -77,7 +77,10 @@ final class Gateway extends Resource
     }
 
     /**
-     * Query operation status by order_id or request_uuid (exactly one).
+     * Query operation status in the processing platform (not raw gateway data).
+     *
+     * Pass at least one of: `merchant_payment_id` (same id as charge/refund create),
+     * `subscription_id`, or `refund_id` (requires `merchant_payment_id` of the charge).
      *
      * @param  array<string, mixed>  $payload
      */

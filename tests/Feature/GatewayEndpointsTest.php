@@ -12,7 +12,7 @@ dataset('gateway endpoints', [
     'recurring cancel' => [fn (VspayClient $c) => $c->gateway()->recurringCancel(['order_id' => 'o']), 'payments/recurring/cancel'],
     'payout' => [fn (VspayClient $c) => $c->gateway()->payout(['order_id' => 'o']), 'payouts'],
     'convert rate' => [fn (VspayClient $c) => $c->gateway()->convertRate(['params' => []]), 'convert/rate'],
-    'status' => [fn (VspayClient $c) => $c->gateway()->status(['order_id' => 'o']), 'status'],
+    'status' => [fn (VspayClient $c) => $c->gateway()->status(['merchant_payment_id' => 'o']), 'status'],
     'checkout url' => [fn (VspayClient $c) => $c->checkout()->url(['merchant_payment_id' => 'o']), 'checkout-url'],
     'refunds' => [fn (VspayClient $c) => $c->refunds()->create(['refund_reference' => 'r']), 'refunds'],
 ]);
