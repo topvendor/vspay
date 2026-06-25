@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.2.0] - 2026-06-25
+
+### Added
+- Merchant return redirect helpers for hosted payments (success / error / pending):
+  - `ReturnQuery` — parse `vspay_status`, `merchant_payment_id` and
+    `operation_uuid` from the payer's return URL (`fromArray`, `fromRequest`,
+    `isSuccess` / `isFailed` / `isPending`).
+  - `MerchantRedirect::withStatus()` — build redirect URLs with the same query
+    contract (e.g. default `error_redirect_url` to
+    `success_redirect_url?vspay_status=failed`).
+- README section on handling payer return redirects and optional
+  `error_redirect_url` for all hosted payment methods.
+
 ## [2.1.0] - 2026-06-23
 
 ### Added
@@ -77,7 +90,8 @@ respective method type); the response shape is unchanged and already exposed via
 - `Vspay` facade and auto-discovered service provider.
 - Publishable `config/vspay.php` driven entirely by environment variables.
 
-[Unreleased]: https://github.com/topvendor/vspay/compare/v1.2.1...HEAD
+[Unreleased]: https://github.com/topvendor/vspay/compare/v2.2.0...HEAD
+[2.2.0]: https://github.com/topvendor/vspay/compare/v2.1.0...v2.2.0
 [1.2.1]: https://github.com/topvendor/vspay/compare/v1.2.0...v1.2.1
 [1.2.0]: https://github.com/topvendor/vspay/compare/v1.1.0...v1.2.0
 [1.1.0]: https://github.com/topvendor/vspay/compare/v1.0.0...v1.1.0

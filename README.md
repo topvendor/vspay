@@ -265,6 +265,60 @@ $response = Vspay::checkout()->url([
 $response->checkoutUrl(); // https://pay.../payment?body=...&signature=...
 ```
 
+### Payer return redirects (hosted payments)
+
+After a hosted payment (SBP, crypto, UZ, LatAm card, etc.) the payer is sent
+back to your store. Pass `success_redirect_url` on every charge; optionally pass
+`error_redirect_url` for a dedicated failure page. If you omit
+`error_redirect_url`, the platform defaults to `success_redirect_url` with
+`vspay_status=failed`.
+
+On return, VSPay appends query parameters (the signed webhook remains the source
+of truth — use the redirect only for UX):
+
+| Query param | Values / meaning |
+| --- | --- |
+| `vspay_status` | `success`, `failed`, or `pending` (payment still settling) |
+| `merchant_payment_id` | Your order id from the charge request |
+| `operation_uuid` | VSPay charge operation uuid |
+
+Handle the return in your Laravel route:
+
+```php
+use Illuminate\Http\Request;
+use Topvendor\Vspay\Redirects\ReturnQuery;
+
+Route::get('/pay/return', function (Request $request) {
+    $return = ReturnQuery::fromRequest($request);
+
+    if ($return->isSuccess()) {
+        return view('pay.ok', ['orderId' => $return->merchantPaymentId]);
+    }
+
+    if ($return->isFailed()) {
+        return view('pay.fail', ['orderId' => $return->merchantPaymentId]);
+    }
+
+    if ($return->isPending()) {
+        return view('pay.pending', ['orderId' => $return->merchantPaymentId]);
+    }
+
+    abort(400);
+});
+```
+
+To mirror the platform default for `error_redirect_url` when creating a charge:
+
+```php
+use Topvendor\Vspay\Redirects\MerchantRedirect;
+use Topvendor\Vspay\Redirects\ReturnQuery;
+
+$errorRedirect = MerchantRedirect::withStatus(
+    'https://merchant.com/pay/ok',
+    ReturnQuery::STATUS_FAILED,
+);
+```
+
 ## Error handling
 
 All failures throw a `Topvendor\Vspay\Exceptions\VspayException` subclass:
@@ -329,6 +383,7 @@ The package version tracks the merchant API surface it covers:
 
 | Package version | API coverage |
 | --- | --- |
+| `2.2.x` | payer return redirects (`vspay_status` query contract, optional `error_redirect_url`) |
 | `2.1.x` | UZ merchant-hosted checkout via `Vspay::uz()` (ehotpay proxy endpoints) |
 | `2.0.x` | scope rename (`SCOPE_NOT_ENABLED` / `SCOPE_NOT_ROUTED`) |
 | `1.2.x` | hosted-checkout charges accepted as `status: "awaiting"` + `payment_url`; per-method request formats documented in the merchant cabinet |
