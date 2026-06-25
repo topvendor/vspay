@@ -7,6 +7,7 @@ it('creates a uz pay-in order via the ehotpay proxy', function () {
         'api.example.test/api/v1/uz/create-pay-in-order' => Http::response([
             'status' => 0,
             'status_label' => 'pending',
+            'amount' => '200133.33',
             'merchant_order_id' => 'uz-order-5001',
             'uid' => 'ehp-1',
             'payments_details' => [
@@ -19,8 +20,8 @@ it('creates a uz pay-in order via the ehotpay proxy', function () {
 
     $response = client()->uz()->createPayInOrder([
         'merchant_order_id' => 'uz-order-5001',
-        'amount' => '100000.00',
-        'currency' => 'UZS',
+        'amount' => '1500.50',
+        'currency' => 'RUB',
         'pay_in_details' => ['payment_method' => 'UZ_UZCARD'],
         'payer' => ['id' => 'c1', 'ip' => '198.51.100.47'],
     ]);
@@ -29,7 +30,8 @@ it('creates a uz pay-in order via the ehotpay proxy', function () {
         ->and($response->statusLabel())->toBe('pending')
         ->and($response->uid())->toBe('ehp-1')
         ->and($response->chargeOperationUuid())->toBe('a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11')
-        ->and($response->paymentsDetails()['recipient_name'])->toBe('AZIZ KARIMOV');
+        ->and($response->paymentsDetails()['recipient_name'])->toBe('AZIZ KARIMOV')
+        ->and($response->data['amount'])->toBe('200133.33');
 });
 
 it('fetches a uz pay-in order by merchant id', function () {
@@ -37,6 +39,7 @@ it('fetches a uz pay-in order by merchant id', function () {
         'api.example.test/api/v1/uz/get-pay-in-order-by-merchant-id/uz-order-5001' => Http::response([
             'status' => 1,
             'status_label' => 'succeeded',
+            'amount' => '200133.33',
             'merchant_order_id' => 'uz-order-5001',
             'uid' => 'ehp-1',
             'charge_operation_uuid' => 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11',
@@ -61,8 +64,31 @@ it('maps uz flow conflict to gateway exception', function () {
     client()->uz()->createPayInOrder([
         'merchant_order_id' => 'uz-order-5001',
         'amount' => '100.00',
-        'currency' => 'UZS',
+        'currency' => 'RUB',
         'pay_in_details' => ['payment_method' => 'UZ_UZCARD'],
         'payer' => ['id' => 'c1', 'ip' => '198.51.100.47'],
     ]);
 })->throws(GatewayException::class);
+
+it('maps uz rate unavailable to gateway exception', function () {
+    Http::fake([
+        'api.example.test/api/v1/uz/create-pay-in-order' => Http::response([
+            'accepted' => false,
+            'error' => ['code' => 'RATE_UNAVAILABLE', 'message' => 'Курс UZS ЦБ недоступен.'],
+        ], 502),
+    ]);
+
+    try {
+        client()->uz()->createPayInOrder([
+            'merchant_order_id' => 'uz-order-5001',
+            'amount' => '100.00',
+            'currency' => 'RUB',
+            'pay_in_details' => ['payment_method' => 'UZ_UZCARD'],
+            'payer' => ['id' => 'c1', 'ip' => '198.51.100.47'],
+        ]);
+        $this->fail('Expected GatewayException');
+    } catch (GatewayException $e) {
+        expect($e->errorCode)->toBe('RATE_UNAVAILABLE')
+            ->and($e->statusCode)->toBe(502);
+    }
+});

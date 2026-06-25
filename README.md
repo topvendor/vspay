@@ -238,11 +238,15 @@ When you host the payment UI yourself, use the ehotpay-shaped proxy endpoints
 instead of `Payments::create` with `instrument.method_type: uz` (which returns
 our hosted `payment_url`).
 
+Send the amount in **RUB** (`currency` must be `RUB`). The platform rounds the
+amount up to whole rubles, converts to UZS at the Central Bank of Russia daily
+rate, and forwards UZS to ehotpay. Response `amount` fields are in UZS.
+
 ```php
 $order = Vspay::uz()->createPayInOrder([
     'merchant_order_id' => 'uz-order-5001',
-    'amount' => '100000.00',
-    'currency' => 'UZS',
+    'amount' => '1500.50',   // RUB; kopecks are rounded up to whole rubles
+    'currency' => 'RUB',
     'pay_in_details' => ['payment_method' => 'UZ_UZCARD'], // or UZ_HUMO
     'webhook_url' => 'https://merchant.com/hooks/payment',
     'payer' => ['id' => 'customer_42', 'ip' => '198.51.100.47'],
@@ -250,12 +254,14 @@ $order = Vspay::uz()->createPayInOrder([
 
 $order->paymentsDetails();      // trader requisites from ehotpay
 $order->chargeOperationUuid();  // for refunds
+// $order->data['amount']       // UZS after conversion
 
 $status = Vspay::uz()->getPayInOrderByMerchantId('uz-order-5001');
 $status->statusLabel();         // e.g. "succeeded"
 ```
 
-Errors such as `FLOW_CONFLICT` (409) are thrown as `GatewayException`.
+Errors such as `FLOW_CONFLICT` (409) and `RATE_UNAVAILABLE` (502, CBR rate
+missing) are thrown as `GatewayException`.
 
 ### Hosted checkout URL
 
@@ -391,6 +397,7 @@ The package version tracks the merchant API surface it covers:
 
 | Package version | API coverage |
 | --- | --- |
+| `4.0.x` | UZ merchant-hosted API: `createPayInOrder` accepts RUB only (platform converts to UZS via CBR rate) |
 | `3.0.x` | `/status` returns processing operation status (`merchant_payment_id` lookup; no `provider` passthrough) |
 | `2.2.x` | payer return redirects (`vspay_status` query contract, optional `error_redirect_url`) |
 | `2.1.x` | UZ merchant-hosted checkout via `Vspay::uz()` (ehotpay proxy endpoints) |

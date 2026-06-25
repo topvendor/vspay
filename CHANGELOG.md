@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [4.0.0] - 2026-06-25
+
+### Changed
+- **BREAKING:** `Uz::createPayInOrder()` now requires `currency: "RUB"` (was `UZS`).
+  - Send the amount in rubles as a decimal string (kopecks allowed); the platform
+    rounds up to whole rubles and converts to UZS at the CBR daily rate before
+    calling ehotpay.
+  - Response `amount` / `actual_amount` fields remain in UZS.
+- README and tests updated for the RUB → UZS conversion contract.
+
+### Added
+- Test coverage for `RATE_UNAVAILABLE` (502) on UZ pay-in order creation.
+
 ## [3.0.0] - 2026-06-25
 
 ### Changed
