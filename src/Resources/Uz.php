@@ -9,8 +9,9 @@ use Topvendor\Vspay\Exceptions\VspayException;
  * UZ merchant-hosted checkout (ehotpay proxy endpoints).
  *
  * Create pay-in orders with amount in RUB; the processing platform rounds the amount
- * up to whole rubles, converts to UZS at the CBR daily rate, and forwards UZS to
- * ehotpay. Response `amount` fields are in UZS.
+ * up to whole rubles, converts to UZS using the latest CBR rate from background import
+ * (daily ImportCbrCryptoRatesJob), and forwards UZS to ehotpay. Response `amount`
+ * fields are in UZS.
  */
 final class Uz extends Resource
 {

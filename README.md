@@ -239,8 +239,9 @@ instead of `Payments::create` with `instrument.method_type: uz` (which returns
 our hosted `payment_url`).
 
 Send the amount in **RUB** (`currency` must be `RUB`). The platform rounds the
-amount up to whole rubles, converts to UZS at the Central Bank of Russia daily
-rate, and forwards UZS to ehotpay. Response `amount` fields are in UZS.
+amount up to whole rubles, converts to UZS using the latest **Central Bank of
+Russia daily rate** (imported in the background, same schedule as crypto CBR
+rates), and forwards UZS to ehotpay. Response `amount` fields are in UZS.
 
 ```php
 $order = Vspay::uz()->createPayInOrder([
