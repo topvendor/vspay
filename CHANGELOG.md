@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [4.1.0] - 2026-11-12
+
+### Added
+- Optional `crypto_currency` (`ASSET-NETWORK`) support for `/status` responses and
+  merchant webhook payloads after the payer selects a crypto asset and receives an address.
+- `Response::cryptoCurrency()` helper; returns `null` before address issuance and for
+  non-crypto operations.
+
 ## [4.0.0] - 2026-06-25
 
 ### Changed

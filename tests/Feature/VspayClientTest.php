@@ -28,6 +28,7 @@ it('sends a bearer token and json to the correct url', function () {
     expect($response->accepted())->toBeTrue()
         ->and($response->providerRequestId())->toBe('req-1')
         ->and($response->chargeOperationUuid())->toBeNull()
+        ->and($response->cryptoCurrency())->toBeNull()
         ->and($response->provider())->toBe(['sync_status' => 'Success']);
 
     Http::assertSent(function ($request) {
@@ -137,6 +138,7 @@ it('queries operation status by merchant_payment_id', function () {
             'status_label' => 'Успех',
             'merchant_payment_id' => 'order-1001',
             'operation_type' => 'charge',
+            'crypto_currency' => 'USDT-TRC20',
             'charge_operation_uuid' => 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11',
         ], 200),
     ]);
@@ -148,6 +150,7 @@ it('queries operation status by merchant_payment_id', function () {
         ->and($response->statusLabel())->toBe('Успех')
         ->and($response->merchantPaymentId())->toBe('order-1001')
         ->and($response->operationType())->toBe('charge')
+        ->and($response->cryptoCurrency())->toBe('USDT-TRC20')
         ->and($response->chargeOperationUuid())->toBe('a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11')
         ->and($response->provider())->toBe([]);
 

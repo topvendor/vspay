@@ -225,6 +225,7 @@ $response->statusValue();        // pending | in_progress | succeeded | failed
 $response->statusLabel();        // e.g. "Успех"
 $response->merchantPaymentId(); // echoes your id
 $response->operationType();      // charge | refund
+$response->cryptoCurrency();     // e.g. USDT-TRC20; null before address issuance/non-crypto
 $response->chargeOperationUuid();
 
 // SBP subscriptions: subscription-only or paired with merchant_payment_id
@@ -398,6 +399,7 @@ The package version tracks the merchant API surface it covers:
 
 | Package version | API coverage |
 | --- | --- |
+| `4.1.x` | optional `crypto_currency` on `/status` and merchant webhooks; `Response::cryptoCurrency()` |
 | `4.0.x` | UZ merchant-hosted API: `createPayInOrder` accepts RUB only (platform converts to UZS via CBR rate) |
 | `3.0.x` | `/status` returns processing operation status (`merchant_payment_id` lookup; no `provider` passthrough) |
 | `2.2.x` | payer return redirects (`vspay_status` query contract, optional `error_redirect_url`) |

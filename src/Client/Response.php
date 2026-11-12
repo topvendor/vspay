@@ -119,6 +119,16 @@ final class Response implements ArrayAccess
     }
 
     /**
+     * Selected crypto asset and network in ASSET-NETWORK format, after address issuance.
+     */
+    public function cryptoCurrency(): ?string
+    {
+        $value = $this->data['crypto_currency'] ?? null;
+
+        return is_string($value) && $value !== '' ? $value : null;
+    }
+
+    /**
      * Subscription id echoed when status was queried by subscription_id only.
      */
     public function subscriptionId(): ?string
