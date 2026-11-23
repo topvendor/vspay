@@ -48,6 +48,16 @@ final class Response implements ArrayAccess
     }
 
     /**
+     * Provider-side payment id, if present.
+     */
+    public function providerPaymentId(): ?string
+    {
+        $value = $this->data['provider_payment_id'] ?? null;
+
+        return $value === null ? null : (string) $value;
+    }
+
+    /**
      * Internal charge operation uuid. Returned on accepted charge responses
      * and used as `charge_operation_uuid` when issuing a refund.
      */

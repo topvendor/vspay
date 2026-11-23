@@ -1,7 +1,7 @@
 {
     "name": "topvendor/vspay",
     "description": "Laravel SDK for the VSPay merchant API (payments, refunds, gateway operations, checkout, webhooks).",
-    "version": "5.0.0",
+    "version": "5.1.0",
     "keywords": ["vspay", "laravel", "payments", "sdk", "merchant", "api"],
     "homepage": "https://github.com/topvendor/vspay",
     "license": "MIT",

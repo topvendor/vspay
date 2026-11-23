@@ -38,6 +38,37 @@ it('sends a bearer token and json to the correct url', function () {
     });
 });
 
+it('passes subscription_id and exposes a recurring charge response', function () {
+    Http::fake([
+        'api.example.test/api/v1/payments' => Http::response([
+            'accepted' => true,
+            'http_status' => 200,
+            'status' => 'pending',
+            'subscription_id' => 'sub-1',
+            'provider_payment_id' => 'provider-pay-1',
+            'charge_operation_uuid' => 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11',
+        ], 200),
+    ]);
+
+    $response = client()->payments()->create([
+        'merchant_payment_id' => 'order-recurring-1',
+        'subscription_id' => 'sub-1',
+        'currency' => 'RUB',
+        'amount' => 199000,
+        'description' => 'Pro plan',
+    ]);
+
+    expect($response->accepted())->toBeTrue()
+        ->and($response->statusValue())->toBe('pending')
+        ->and($response->subscriptionId())->toBe('sub-1')
+        ->and($response->providerPaymentId())->toBe('provider-pay-1')
+        ->and($response->chargeOperationUuid())->toBe('a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11');
+
+    Http::assertSent(fn ($request) => $request->url() === 'https://api.example.test/api/v1/payments'
+        && $request['subscription_id'] === 'sub-1'
+        && $request['description'] === 'Pro plan');
+});
+
 it('exposes charge_operation_uuid for refunds', function () {
     Http::fake([
         'api.example.test/api/v1/payments' => Http::response([
