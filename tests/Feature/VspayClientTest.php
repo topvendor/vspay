@@ -88,6 +88,46 @@ it('creates a hosted-checkout charge and exposes the payment url', function () {
         && $request['instrument']['method_type'] === 'some_hosted_method');
 });
 
+it('exposes the normalized recurring response contract', function () {
+    Http::fake([
+        'api.example.test/api/v1/payments/recurring' => Http::response([
+            'accepted' => true,
+            'http_status' => 200,
+            'status' => 'pending',
+            'subscription_id' => 'sub-1',
+            'initial_payment_id' => 'pay-1',
+            'pay_url' => 'https://pay.example.test/bind/sub-1',
+        ], 200),
+    ]);
+
+    $response = client()->gateway()->recurring(['order_id' => 'rec-1']);
+
+    expect($response->accepted())->toBeTrue()
+        ->and($response->statusValue())->toBe('pending')
+        ->and($response->subscriptionId())->toBe('sub-1')
+        ->and($response->initialPaymentId())->toBe('pay-1')
+        ->and($response->payUrl())->toBe('https://pay.example.test/bind/sub-1');
+});
+
+it('allows recurring responses without payer action or initial payment', function () {
+    Http::fake([
+        'api.example.test/api/v1/payments/recurring' => Http::response([
+            'accepted' => true,
+            'http_status' => 200,
+            'status' => 'pending',
+            'subscription_id' => 'sub-2',
+            'initial_payment_id' => null,
+            'pay_url' => null,
+        ], 200),
+    ]);
+
+    $response = client()->gateway()->recurring(['order_id' => 'rec-2']);
+
+    expect($response->subscriptionId())->toBe('sub-2')
+        ->and($response->initialPaymentId())->toBeNull()
+        ->and($response->payUrl())->toBeNull();
+});
+
 it('maps 401 to UnauthorizedException', function () {
     Http::fake([
         '*' => Http::response([

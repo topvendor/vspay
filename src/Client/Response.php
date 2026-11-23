@@ -69,6 +69,16 @@ final class Response implements ArrayAccess
     }
 
     /**
+     * Gateway-independent recurring payer action URL; null when no action is required.
+     */
+    public function payUrl(): ?string
+    {
+        $value = $this->data['pay_url'] ?? null;
+
+        return $value === null ? null : (string) $value;
+    }
+
+    /**
      * Signed checkout URL (from /checkout-url).
      */
     public function checkoutUrl(): ?string
@@ -129,11 +139,21 @@ final class Response implements ArrayAccess
     }
 
     /**
-     * Subscription id echoed when status was queried by subscription_id only.
+     * Normalized subscription id returned by recurring registration and status queries.
      */
     public function subscriptionId(): ?string
     {
         $value = $this->data['subscription_id'] ?? null;
+
+        return $value === null ? null : (string) $value;
+    }
+
+    /**
+     * Initial bind/charge id returned by recurring registration, when available.
+     */
+    public function initialPaymentId(): ?string
+    {
+        $value = $this->data['initial_payment_id'] ?? null;
 
         return $value === null ? null : (string) $value;
     }

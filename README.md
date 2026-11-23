@@ -214,6 +214,13 @@ Vspay::gateway()->recurring([...]);
 Vspay::gateway()->recurringCancel(['order_id' => 'ord-1']);
 Vspay::gateway()->payout([...]);
 
+// Recurring registration has one gateway-independent response contract.
+$recurring = Vspay::gateway()->recurring([...]);
+$recurring->statusValue();       // initially "pending"
+$recurring->subscriptionId();
+$recurring->initialPaymentId();  // provider/internal id or null
+$recurring->payUrl();            // hosted/QR/binding URL, or null when no payer action is required
+
 // Conversion rate
 Vspay::gateway()->convertRate([
     'params' => ['currency_from' => 'USD', 'currency_to' => 'RUB'],
@@ -399,6 +406,7 @@ The package version tracks the merchant API surface it covers:
 
 | Package version | API coverage |
 | --- | --- |
+| `5.0.x` | gateway-independent recurring response (`pending`, `subscription_id`, `initial_payment_id`, nullable `pay_url`) |
 | `4.1.x` | optional `crypto_currency` on `/status` and merchant webhooks; `Response::cryptoCurrency()` |
 | `4.0.x` | UZ merchant-hosted API: `createPayInOrder` accepts RUB only (platform converts to UZS via CBR rate) |
 | `3.0.x` | `/status` returns processing operation status (`merchant_payment_id` lookup; no `provider` passthrough) |

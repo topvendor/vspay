@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [5.0.0] - 2026-11-23
+
+### Changed
+- **BREAKING (Merchant API contract):** recurring registration now uses the
+  gateway-independent `status`, `subscription_id`, `initial_payment_id` and `pay_url`
+  fields. Initial provider statuses normalize to `pending`; provider-specific
+  `payment_url`, `qr_link`, `qr_image` and `CREATED` are not recurring contract fields.
+- `pay_url` is nullable when the payer does not need to open a hosted/QR/binding page.
+
+### Added
+- `Response::payUrl()` and `Response::initialPaymentId()` helpers.
+
 ## [4.1.0] - 2026-11-12
 
 ### Added
@@ -125,7 +137,11 @@ respective method type); the response shape is unchanged and already exposed via
 - `Vspay` facade and auto-discovered service provider.
 - Publishable `config/vspay.php` driven entirely by environment variables.
 
-[Unreleased]: https://github.com/topvendor/vspay/compare/v2.2.0...HEAD
+[Unreleased]: https://github.com/topvendor/vspay/compare/v5.0.0...HEAD
+[5.0.0]: https://github.com/topvendor/vspay/compare/v4.1.0...v5.0.0
+[4.1.0]: https://github.com/topvendor/vspay/compare/v4.0.0...v4.1.0
+[4.0.0]: https://github.com/topvendor/vspay/compare/v3.0.0...v4.0.0
+[3.0.0]: https://github.com/topvendor/vspay/compare/v2.2.0...v3.0.0
 [2.2.0]: https://github.com/topvendor/vspay/compare/v2.1.0...v2.2.0
 [1.2.1]: https://github.com/topvendor/vspay/compare/v1.2.0...v1.2.1
 [1.2.0]: https://github.com/topvendor/vspay/compare/v1.1.0...v1.2.0
