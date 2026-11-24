@@ -3,6 +3,7 @@
 namespace Topvendor\Vspay\Client;
 
 use ArrayAccess;
+use Topvendor\Vspay\Concerns\InteractsWithPaymentAmounts;
 
 /**
  * Thin wrapper over the API response envelope.
@@ -11,6 +12,8 @@ use ArrayAccess;
  */
 final class Response implements ArrayAccess
 {
+    use InteractsWithPaymentAmounts;
+
     /**
      * @param  array<string, mixed>  $data  Decoded JSON body.
      * @param  int  $status  HTTP status code.

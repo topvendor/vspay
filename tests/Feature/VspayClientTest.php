@@ -298,3 +298,88 @@ it('wraps connection failures in VspayException', function () {
 
     client()->payments()->create([]);
 })->throws(VspayException::class);
+
+it('exposes a fully settled crypto status response', function () {
+    Http::fake([
+        'api.example.test/api/v1/status' => Http::response([
+            'accepted' => true,
+            'status' => 'succeeded',
+            'merchant_payment_id' => 'order-full',
+            'operation_type' => 'charge',
+            'amount' => 10000,
+            'requested_amount' => 10000,
+            'currency' => 'RUB',
+            'crypto_expected_amount' => '1.25000000',
+            'crypto_received_amount' => '1.25000000',
+        ], 200),
+    ]);
+
+    $response = client()->gateway()->status(['merchant_payment_id' => 'order-full']);
+
+    expect($response->amountMinor())->toBe(10000)
+        ->and($response->requestedAmountMinor())->toBe(10000)
+        ->and($response->currency())->toBe('RUB')
+        ->and($response->cryptoExpectedAmount())->toBe('1.25000000')
+        ->and($response->cryptoReceivedAmount())->toBe('1.25000000')
+        ->and($response->isUnderpaid())->toBeFalse();
+});
+
+it('exposes an underpaid crypto status response', function () {
+    Http::fake([
+        'api.example.test/api/v1/status' => Http::response([
+            'accepted' => true,
+            'status' => 'succeeded',
+            'merchant_payment_id' => 'order-underpaid',
+            'operation_type' => 'charge',
+            'amount' => 7500,
+            'requested_amount' => 10000,
+            'currency' => 'RUB',
+            'crypto_expected_amount' => '1.25000000',
+            'crypto_received_amount' => '0.93750000',
+        ], 200),
+    ]);
+
+    $response = client()->gateway()->status(['merchant_payment_id' => 'order-underpaid']);
+
+    expect($response->amountMinor())->toBe(7500)
+        ->and($response->requestedAmountMinor())->toBe(10000)
+        ->and($response->currency())->toBe('RUB')
+        ->and($response->cryptoExpectedAmount())->toBe('1.25000000')
+        ->and($response->cryptoReceivedAmount())->toBe('0.93750000')
+        ->and($response->isUnderpaid())->toBeTrue();
+});
+
+it('uses the settled amount as requested amount for a legacy status response', function () {
+    Http::fake([
+        'api.example.test/api/v1/status' => Http::response([
+            'accepted' => true,
+            'status' => 'succeeded',
+            'merchant_payment_id' => 'order-legacy',
+            'operation_type' => 'charge',
+            'amount' => 10000,
+        ], 200),
+    ]);
+
+    $response = client()->gateway()->status(['merchant_payment_id' => 'order-legacy']);
+
+    expect($response->amountMinor())->toBe(10000)
+        ->and($response->requestedAmountMinor())->toBe(10000)
+        ->and($response->currency())->toBeNull()
+        ->and($response->cryptoExpectedAmount())->toBeNull()
+        ->and($response->cryptoReceivedAmount())->toBeNull()
+        ->and($response->isUnderpaid())->toBeFalse();
+});
+
+it('rejects malformed money in a status response', function () {
+    Http::fake([
+        'api.example.test/api/v1/status' => Http::response([
+            'accepted' => true,
+            'status' => 'succeeded',
+            'amount' => 100.5,
+        ], 200),
+    ]);
+
+    $response = client()->gateway()->status(['merchant_payment_id' => 'order-malformed']);
+
+    $response->amountMinor();
+})->throws(UnexpectedValueException::class);
